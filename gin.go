@@ -61,6 +61,7 @@ func Middlewares(m ...middleware.Middleware) gin.HandlerFunc {
 	chain := middleware.Chain(m...)
 	return func(c *gin.Context) {
 		next := func(ctx context.Context, req interface{}) (interface{}, error) {
+			c.Request = c.Request.WithContext(ctx)
 			c.Next()
 			var err error
 			if c.Writer.Status() >= 400 {
@@ -70,11 +71,10 @@ func Middlewares(m ...middleware.Middleware) gin.HandlerFunc {
 		}
 		next = chain(next)
 		ctx := NewGinContext(c.Request.Context(), c)
-		c.Request = c.Request.WithContext(ctx)
 		if ginCtx, ok := FromGinContext(ctx); ok {
 			thttp.SetOperation(ctx, ginCtx.FullPath())
 		}
-		next(c.Request.Context(), c.Request)
+		next(ctx, c.Request)
 	}
 }
 
