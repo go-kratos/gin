@@ -1,6 +1,6 @@
-module github.com/go-kratos/gin
+module github.com/liuxp0827/gin
 
-go 1.15
+go 1.16
 
 require (
 	github.com/gin-gonic/gin v1.7.4
