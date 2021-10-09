@@ -1,4 +1,4 @@
-module github.com/liuxp0827/gin
+module github.com/liuxp0827/kratos-gin
 
 go 1.16
 

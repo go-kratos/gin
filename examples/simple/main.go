@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"log"
 
 	"github.com/gin-gonic/gin"
-	kgin "github.com/go-kratos/gin"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/liuxp0827/kratos-gin"
 )
 
 func customMiddleware(handler middleware.Handler) middleware.Handler {
@@ -41,7 +42,7 @@ func main() {
 	httpSrv.HandlePrefix("/", router)
 
 	app := kratos.New(
-		kratos.Name("gin"),
+		kratos.Name("kratos-gin"),
 		kratos.Server(
 			httpSrv,
 		),
