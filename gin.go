@@ -9,6 +9,8 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/middleware"
 	thttp "github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 )
 
 const (
@@ -33,22 +35,34 @@ func (er *errorRender) WriteContentType(w http.ResponseWriter) {
 }
 
 // Error encodes the object to the HTTP response.
-func Error(c *gin.Context, err error) {
+func Error(ctx *gin.Context, err error) {
 	if err == nil {
-		c.Status(http.StatusOK)
+		ctx.Status(http.StatusOK)
 		return
 	}
-	codec, _ := thttp.CodecForRequest(c.Request, "Accept")
-	se := errors.FromError(err)
-	body, err := codec.Marshal(se)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
+	ctx.AbortWithStatusJSON(500, errors.FromError(err))
+}
+
+func Success(ctx *gin.Context, data interface{}) {
+	if data == nil {
+		data = struct{}{}
+	}
+
+	if msg, ok := data.(proto.Message); ok {
+		var m = jsonpb.Marshaler{
+			EmitDefaults: true,
+		}
+		ctx.Writer.WriteHeader(http.StatusOK)
+		ctx.Writer.Header().Add("Content-Type", "application/json; charset=utf-8")
+		err := m.Marshal(ctx.Writer, msg)
+		if err != nil {
+			Error(ctx, err)
+			return
+		}
 		return
 	}
-	contentType := codec.Name()
-	code := int(se.Code)
-	c.Render(code, &errorRender{body: body, contentType: contentType})
-	return
+
+	ctx.JSON(http.StatusOK, data)
 }
 
 // ContentType returns the content-type with base prefix.
@@ -89,4 +103,15 @@ func NewGinContext(ctx context.Context, c *gin.Context) context.Context {
 func FromGinContext(ctx context.Context) (c *gin.Context, ok bool) {
 	c, ok = ctx.Value(ginKey{}).(*gin.Context)
 	return
+}
+
+type Validator interface {
+	Validate() error
+}
+
+func Validate(in interface{}) error {
+	if val, ok := in.(Validator); ok {
+		return val.Validate()
+	}
+	return nil
 }
