@@ -74,7 +74,10 @@ func Middlewares(m ...middleware.Middleware) gin.HandlerFunc {
 		if ginCtx, ok := FromGinContext(ctx); ok {
 			thttp.SetOperation(ctx, ginCtx.FullPath())
 		}
-		next(c.Request.Context(), c.Request)
+		_, err := next(c.Request.Context(), c.Request)
+		if err != nil {
+			c.Abort()
+		}
 	}
 }
 
