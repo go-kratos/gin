@@ -63,7 +63,7 @@ func Middlewares(m ...middleware.Middleware) gin.HandlerFunc {
 		next := func(ctx context.Context, req interface{}) (interface{}, error) {
 			c.Next()
 			var err error
-			if c.Writer.Status() >= 400 {
+			if c.Writer.Status() >= http.StatusBadRequest {
 				err = errors.Errorf(c.Writer.Status(), errors.UnknownReason, errors.UnknownReason)
 			}
 			return c.Writer, err
