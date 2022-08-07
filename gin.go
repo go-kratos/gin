@@ -48,6 +48,7 @@ func Error(c *gin.Context, err error) {
 	contentType := codec.Name()
 	code := int(se.Code)
 	c.Render(code, &errorRender{body: body, contentType: contentType})
+	c.Abort()
 	return
 }
 
@@ -74,7 +75,9 @@ func Middlewares(m ...middleware.Middleware) gin.HandlerFunc {
 		if ginCtx, ok := FromGinContext(ctx); ok {
 			thttp.SetOperation(ctx, ginCtx.FullPath())
 		}
-		next(c.Request.Context(), c.Request)
+		if _, err := next(c.Request.Context(), c.Request); err != nil {
+			Error(c, err)
+		}
 	}
 }
 
